@@ -8,10 +8,11 @@ Wang Xiang et al. Neural Graph Collaborative Filtering. In SIGIR 2019.
 import tensorflow as tf
 import os
 import sys
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-
 from utility.helper import *
 from utility.batch_test import *
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 class NGCF(object):
     def __init__(self, data_config, pretrain_data):
@@ -98,7 +99,8 @@ class NGCF(object):
         *********************************************************
         Inference for the testing phase.
         """
-        self.batch_ratings = tf.matmul(self.u_g_embeddings, self.pos_i_g_embeddings, transpose_a=False, transpose_b=True)
+        self.batch_ratings = tf.matmul(self.u_g_embeddings, self.pos_i_g_embeddings, transpose_a=False,
+                                       transpose_b=True)
 
         """
         *********************************************************
@@ -117,8 +119,10 @@ class NGCF(object):
         initializer = tf.contrib.layers.xavier_initializer()
 
         if self.pretrain_data is None:
-            all_weights['user_embedding'] = tf.Variable(initializer([self.n_users, self.emb_dim]), name='user_embedding')
-            all_weights['item_embedding'] = tf.Variable(initializer([self.n_items, self.emb_dim]), name='item_embedding')
+            all_weights['user_embedding'] = tf.Variable(initializer([self.n_users, self.emb_dim]),
+                                                        name='user_embedding')
+            all_weights['item_embedding'] = tf.Variable(initializer([self.n_items, self.emb_dim]),
+                                                        name='item_embedding')
             print('using xavier initialization')
         else:
             all_weights['user_embedding'] = tf.Variable(initial_value=self.pretrain_data['user_embed'], trainable=True,
@@ -130,10 +134,10 @@ class NGCF(object):
         self.weight_size_list = [self.emb_dim] + self.weight_size
 
         for k in range(self.n_layers):
-            all_weights['W_gc_%d' %k] = tf.Variable(
-                initializer([self.weight_size_list[k], self.weight_size_list[k+1]]), name='W_gc_%d' % k)
-            all_weights['b_gc_%d' %k] = tf.Variable(
-                initializer([1, self.weight_size_list[k+1]]), name='b_gc_%d' % k)
+            all_weights['W_gc_%d' % k] = tf.Variable(
+                initializer([self.weight_size_list[k], self.weight_size_list[k + 1]]), name='W_gc_%d' % k)
+            all_weights['b_gc_%d' % k] = tf.Variable(
+                initializer([1, self.weight_size_list[k + 1]]), name='b_gc_%d' % k)
 
             all_weights['W_bi_%d' % k] = tf.Variable(
                 initializer([self.weight_size_list[k], self.weight_size_list[k + 1]]), name='W_bi_%d' % k)
@@ -141,9 +145,9 @@ class NGCF(object):
                 initializer([1, self.weight_size_list[k + 1]]), name='b_bi_%d' % k)
 
             all_weights['W_mlp_%d' % k] = tf.Variable(
-                initializer([self.weight_size_list[k], self.weight_size_list[k+1]]), name='W_mlp_%d' % k)
+                initializer([self.weight_size_list[k], self.weight_size_list[k + 1]]), name='W_mlp_%d' % k)
             all_weights['b_mlp_%d' % k] = tf.Variable(
-                initializer([1, self.weight_size_list[k+1]]), name='b_mlp_%d' % k)
+                initializer([1, self.weight_size_list[k + 1]]), name='b_mlp_%d' % k)
 
         return all_weights
 
@@ -153,7 +157,7 @@ class NGCF(object):
         fold_len = (self.n_users + self.n_items) // self.n_fold
         for i_fold in range(self.n_fold):
             start = i_fold * fold_len
-            if i_fold == self.n_fold -1:
+            if i_fold == self.n_fold - 1:
                 end = self.n_users + self.n_items
             else:
                 end = (i_fold + 1) * fold_len
@@ -167,7 +171,7 @@ class NGCF(object):
         fold_len = (self.n_users + self.n_items) // self.n_fold
         for i_fold in range(self.n_fold):
             start = i_fold * fold_len
-            if i_fold == self.n_fold -1:
+            if i_fold == self.n_fold - 1:
                 end = self.n_users + self.n_items
             else:
                 end = (i_fold + 1) * fold_len
@@ -216,7 +220,7 @@ class NGCF(object):
             ego_embeddings = tf.nn.dropout(ego_embeddings, 1 - self.mess_dropout[k])
 
             # normalize the distribution of embeddings.
-            norm_embeddings = tf.math.l2_normalize(ego_embeddings, axis=1)
+            norm_embeddings = tf.nn.l2_normalize(ego_embeddings, axis=1)
 
             all_embeddings += [norm_embeddings]
 
@@ -228,7 +232,6 @@ class NGCF(object):
         A_fold_hat = self._split_A_hat(self.norm_adj)
         embeddings = tf.concat([self.weights['user_embedding'], self.weights['item_embedding']], axis=0)
 
-
         all_embeddings = [embeddings]
 
         for k in range(0, self.n_layers):
@@ -237,7 +240,8 @@ class NGCF(object):
                 temp_embed.append(tf.sparse_tensor_dense_matmul(A_fold_hat[f], embeddings))
 
             embeddings = tf.concat(temp_embed, 0)
-            embeddings = tf.nn.leaky_relu(tf.matmul(embeddings, self.weights['W_gc_%d' %k]) + self.weights['b_gc_%d' %k])
+            embeddings = tf.nn.leaky_relu(
+                tf.matmul(embeddings, self.weights['W_gc_%d' % k]) + self.weights['b_gc_%d' % k])
             embeddings = tf.nn.dropout(embeddings, 1 - self.mess_dropout[k])
 
             all_embeddings += [embeddings]
@@ -259,9 +263,10 @@ class NGCF(object):
                 temp_embed.append(tf.sparse_tensor_dense_matmul(A_fold_hat[f], embeddings))
             embeddings = tf.concat(temp_embed, 0)
             # convolutional layer.
-            embeddings = tf.nn.leaky_relu(tf.matmul(embeddings, self.weights['W_gc_%d' % k]) + self.weights['b_gc_%d' % k])
+            embeddings = tf.nn.leaky_relu(
+                tf.matmul(embeddings, self.weights['W_gc_%d' % k]) + self.weights['b_gc_%d' % k])
             # dense layer.
-            mlp_embeddings = tf.matmul(embeddings, self.weights['W_mlp_%d' %k]) + self.weights['b_mlp_%d' %k]
+            mlp_embeddings = tf.matmul(embeddings, self.weights['W_mlp_%d' % k]) + self.weights['b_mlp_%d' % k]
             mlp_embeddings = tf.nn.dropout(mlp_embeddings, 1 - self.mess_dropout[k])
 
             all_embeddings += [mlp_embeddings]
@@ -270,24 +275,24 @@ class NGCF(object):
         u_g_embeddings, i_g_embeddings = tf.split(all_embeddings, [self.n_users, self.n_items], 0)
         return u_g_embeddings, i_g_embeddings
 
-
     def create_bpr_loss(self, users, pos_items, neg_items):
+        # the shape (batch, embed) of users is the same as that of pos_items and neg_items
+        # because num_samples of pos_item for a user is 1.
         pos_scores = tf.reduce_sum(tf.multiply(users, pos_items), axis=1)
         neg_scores = tf.reduce_sum(tf.multiply(users, neg_items), axis=1)
 
         regularizer = tf.nn.l2_loss(users) + tf.nn.l2_loss(pos_items) + tf.nn.l2_loss(neg_items)
-        regularizer = regularizer/self.batch_size
-        
+        regularizer = regularizer / self.batch_size
+
         # In the first version, we implement the bpr loss via the following codes:
         # We report the performance in our paper using this implementation.
         maxi = tf.log(tf.nn.sigmoid(pos_scores - neg_scores))
         mf_loss = tf.negative(tf.reduce_mean(maxi))
-        
-        ## In the second version, we implement the bpr loss via the following codes to avoid 'NAN' loss during training:
-        ## However, it will change the training performance and training performance.
-        ## Please retrain the model and do a grid search for the best experimental setting.
+
+        # In the second version, we implement the bpr loss via the following codes to avoid 'NAN' loss during training:
+        # However, it will change the training performance and training performance.
+        # Please retrain the model and do a grid search for the best experimental setting.
         # mf_loss = tf.reduce_sum(tf.nn.softplus(-(pos_scores - neg_scores)))
-        
 
         emb_loss = self.decay * regularizer
 
@@ -312,6 +317,7 @@ class NGCF(object):
 
         return pre_out * tf.div(1., keep_prob)
 
+
 def load_pretrained_data():
     pretrain_path = '%spretrain/%s/%s.npz' % (args.proj_path, args.dataset, 'embedding')
     try:
@@ -320,6 +326,7 @@ def load_pretrained_data():
     except Exception:
         pretrain_data = None
     return pretrain_data
+
 
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
@@ -342,9 +349,9 @@ if __name__ == '__main__':
         config['norm_adj'] = norm_adj
         print('use the normalized adjacency matrix')
 
-    elif args.adj_type == 'gcmc':
+    elif args.adj_type == 'mean':
         config['norm_adj'] = mean_adj
-        print('use the gcmc adjacency matrix')
+        print('use the mean adjacency matrix')
 
     else:
         config['norm_adj'] = mean_adj + sp.eye(mean_adj.shape[0])
@@ -385,7 +392,6 @@ if __name__ == '__main__':
 
         pretrain_path = '%sweights/%s/%s/%s/l%s_r%s' % (args.weights_path, args.dataset, model.model_type, layer,
                                                         str(args.lr), '-'.join([str(r) for r in eval(args.regs)]))
-
 
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(pretrain_path + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
@@ -463,17 +469,18 @@ if __name__ == '__main__':
 
         for idx in range(n_batch):
             users, pos_items, neg_items = data_generator.sample()
-            _, batch_loss, batch_mf_loss, batch_emb_loss, batch_reg_loss = sess.run([model.opt, model.loss, model.mf_loss, model.emb_loss, model.reg_loss],
-                               feed_dict={model.users: users, model.pos_items: pos_items,
-                                          model.node_dropout: eval(args.node_dropout),
-                                          model.mess_dropout: eval(args.mess_dropout),
-                                          model.neg_items: neg_items})
+            _, batch_loss, batch_mf_loss, batch_emb_loss, batch_reg_loss = sess.run(
+                [model.opt, model.loss, model.mf_loss, model.emb_loss, model.reg_loss],
+                feed_dict={model.users: users, model.pos_items: pos_items,
+                           model.node_dropout: eval(args.node_dropout),
+                           model.mess_dropout: eval(args.mess_dropout),
+                           model.neg_items: neg_items})
             loss += batch_loss
             mf_loss += batch_mf_loss
             emb_loss += batch_emb_loss
             reg_loss += batch_reg_loss
 
-        if np.isnan(loss) == True:
+        if np.isnan(loss):
             print('ERROR: loss is nan.')
             sys.exit()
 
@@ -510,7 +517,7 @@ if __name__ == '__main__':
 
         # *********************************************************
         # early stopping when cur_best_pre_0 is decreasing for ten successive steps.
-        if should_stop == True:
+        if should_stop:
             break
 
         # *********************************************************

@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument('--model_type', nargs='?', default='ngcf',
                         help='Specify the name of model (ngcf).')
     parser.add_argument('--adj_type', nargs='?', default='norm',
-                        help='Specify the type of the adjacency (laplacian) matrix from {plain, norm, mean}.')
+                        help='Specify the type of the adjacency (laplacian) matrix from {plain, norm, mean, other}.')
     parser.add_argument('--alg_type', nargs='?', default='ngcf',
                         help='Specify the type of the graph convolutional layer from {ngcf, gcn, gcmc}.')
 
@@ -50,9 +50,11 @@ def parse_args():
     parser.add_argument('--node_dropout_flag', type=int, default=0,
                         help='0: Disable node dropout, 1: Activate node dropout')
     parser.add_argument('--node_dropout', nargs='?', default='[0.1]',
-                        help='Keep probability w.r.t. node dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no dropout.')
+                        help='Keep probability w.r.t. node dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no '
+                             'dropout.')
     parser.add_argument('--mess_dropout', nargs='?', default='[0.1]',
-                        help='Keep probability w.r.t. message dropout (i.e., 1-dropout_ratio) for each deep layer. 1: no dropout.')
+                        help='Keep probability w.r.t. message dropout (i.e., 1-dropout_ratio) for each deep layer. 1: '
+                             'no dropout.')
 
     parser.add_argument('--Ks', nargs='?', default='[20, 40, 60, 80, 100]',
                         help='Output sizes of every layer')
@@ -61,8 +63,10 @@ def parse_args():
                         help='0: Disable model saver, 1: Activate model saver')
 
     parser.add_argument('--test_flag', nargs='?', default='part',
-                        help='Specify the test type from {part, full}, indicating whether the reference is done in mini-batch')
+                        help='Specify the test type from {part, full}, indicating whether the reference is done in '
+                             'mini-batch')
 
     parser.add_argument('--report', type=int, default=0,
-                        help='0: Disable performance report w.r.t. sparsity levels, 1: Show performance report w.r.t. sparsity levels')
+                        help='0: Disable performance report w.r.t. sparsity levels, 1: Show performance report w.r.t. '
+                             'sparsity levels')
     return parser.parse_args()

@@ -10,6 +10,7 @@ import random as rd
 import scipy.sparse as sp
 from time import time
 
+
 class Data(object):
     def __init__(self, path, batch_size):
         self.path = path
@@ -18,7 +19,7 @@ class Data(object):
         train_file = path + '/train.txt'
         test_file = path + '/test.txt'
 
-        #get number of users and items
+        # get number of users and items
         self.n_users, self.n_items = 0, 0
         self.n_train, self.n_test = 0, 0
         self.neg_pools = {}
@@ -147,7 +148,6 @@ class Data(object):
         else:
             users = [rd.choice(self.exist_users) for _ in range(self.batch_size)]
 
-
         def sample_pos_items_for_u(u, num):
             pos_items = self.train_items[u]
             n_pos_items = len(pos_items)
@@ -165,7 +165,7 @@ class Data(object):
             neg_items = []
             while True:
                 if len(neg_items) == num: break
-                neg_id = np.random.randint(low=0, high=self.n_items,size=1)[0]
+                neg_id = np.random.randint(low=0, high=self.n_items, size=1)[0]
                 if neg_id not in self.train_items[u] and neg_id not in neg_items:
                     neg_items.append(neg_id)
             return neg_items
@@ -187,8 +187,8 @@ class Data(object):
     def print_statistics(self):
         print('n_users=%d, n_items=%d' % (self.n_users, self.n_items))
         print('n_interactions=%d' % (self.n_train + self.n_test))
-        print('n_train=%d, n_test=%d, sparsity=%.5f' % (self.n_train, self.n_test, (self.n_train + self.n_test)/(self.n_users * self.n_items)))
-
+        print('n_train=%d, n_test=%d, sparsity=%.5f' % (
+        self.n_train, self.n_test, (self.n_train + self.n_test) / (self.n_users * self.n_items)))
 
     def get_sparsity_split(self):
         try:
@@ -212,8 +212,6 @@ class Data(object):
             print('create sparsity split.')
 
         return split_uids, split_state
-
-
 
     def create_sparsity_split(self):
         all_users_to_test = list(self.test_set.keys())
@@ -248,7 +246,7 @@ class Data(object):
             if n_rates >= count * 0.25 * (self.n_train + self.n_test):
                 split_uids.append(temp)
 
-                state = '#inter per user<=[%d], #users=[%d], #all rates=[%d]' %(n_iids, len(temp), n_rates)
+                state = '#inter per user<=[%d], #users=[%d], #all rates=[%d]' % (n_iids, len(temp), n_rates)
                 split_state.append(state)
                 print(state)
 
@@ -262,7 +260,5 @@ class Data(object):
                 state = '#inter per user<=[%d], #users=[%d], #all rates=[%d]' % (n_iids, len(temp), n_rates)
                 split_state.append(state)
                 print(state)
-
-
 
         return split_uids, split_state
