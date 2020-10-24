@@ -18,7 +18,7 @@ def precision_at_k(r, k):
     return np.mean(r)
 
 
-def average_precision(r,cut):
+def average_precision(r, cut):
     """Score is average precision (area under PR curve)
     Relevance is binary (nonzero is relevant).
     Returns:
