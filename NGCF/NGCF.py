@@ -149,6 +149,9 @@ class NGCF(object):
             all_weights['b_mlp_%d' % k] = tf.Variable(
                 initializer([1, self.weight_size_list[k + 1]]), name='b_mlp_%d' % k)
 
+        # weighted sum
+        all_weights['embedding_weights'] = tf.Variable(initializer([self.n_layers + 1]), name='embedding_weights')
+
         return all_weights
 
     def _split_A_hat(self, X):
@@ -193,7 +196,12 @@ class NGCF(object):
 
         ego_embeddings = tf.concat([self.weights['user_embedding'], self.weights['item_embedding']], axis=0)
 
-        all_embeddings = [ego_embeddings]
+        # origin
+        # all_embeddings = [ego_embeddings]
+        # weighted sum
+        all_embeddings = ego_embeddings * self.weights['embedding_weights'][0]
+        # average sum
+        # all_embeddings = ego_embeddings / self.n_layers
 
         for k in range(0, self.n_layers):
 
@@ -222,9 +230,14 @@ class NGCF(object):
             # normalize the distribution of embeddings.
             norm_embeddings = tf.nn.l2_normalize(ego_embeddings, axis=1)
 
-            all_embeddings += [norm_embeddings]
+            # origin
+            # all_embeddings.append(norm_embeddings)
+            # weighted sum
+            all_embeddings += norm_embeddings * self.weights['embedding_weights'][k+1]
+            # average sum
+            # all_embeddings += norm_embeddings / self.n_layers
 
-        all_embeddings = tf.concat(all_embeddings, 1)
+        # all_embeddings = tf.concat(all_embeddings, 1)
         u_g_embeddings, i_g_embeddings = tf.split(all_embeddings, [self.n_users, self.n_items], 0)
         return u_g_embeddings, i_g_embeddings
 
@@ -499,7 +512,7 @@ if __name__ == '__main__':
         t3 = time()
 
         loss_loger.append(loss)
-        rec_loger.append(ret['recall'])
+        rec_loger.append(ret['recall'])  # ret['recall']: [recall@20, recall@40, ..., recall@100]
         pre_loger.append(ret['precision'])
         ndcg_loger.append(ret['ndcg'])
         hit_loger.append(ret['hit_ratio'])

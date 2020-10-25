@@ -14,7 +14,7 @@ import heapq
 cores = multiprocessing.cpu_count() // 2
 
 args = parse_args()  # It can be called in other scripts
-Ks = eval(args.Ks)  # transfer string into dict
+Ks = eval(args.Ks)  # transfer string into dict, tuple and list
 
 data_generator = Data(path=args.data_path + args.dataset, batch_size=args.batch_size)
 USR_NUM, ITEM_NUM = data_generator.n_users, data_generator.n_items
