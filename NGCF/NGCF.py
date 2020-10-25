@@ -199,9 +199,9 @@ class NGCF(object):
         # origin
         # all_embeddings = [ego_embeddings]
         # weighted sum
-        all_embeddings = ego_embeddings * self.weights['embedding_weights'][0]
+        # all_embeddings = ego_embeddings * self.weights['embedding_weights'][0]
         # average sum
-        # all_embeddings = ego_embeddings / self.n_layers
+        all_embeddings = ego_embeddings / (self.n_layers + 1)
 
         for k in range(0, self.n_layers):
 
@@ -233,9 +233,9 @@ class NGCF(object):
             # origin
             # all_embeddings.append(norm_embeddings)
             # weighted sum
-            all_embeddings += norm_embeddings * self.weights['embedding_weights'][k+1]
+            # all_embeddings += norm_embeddings * self.weights['embedding_weights'][k+1]
             # average sum
-            # all_embeddings += norm_embeddings / self.n_layers
+            all_embeddings += norm_embeddings / (self.n_layers + 1)
 
         # all_embeddings = tf.concat(all_embeddings, 1)
         u_g_embeddings, i_g_embeddings = tf.split(all_embeddings, [self.n_users, self.n_items], 0)
